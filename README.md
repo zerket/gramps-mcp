@@ -202,4 +202,6 @@ src/gramps_mcp/
 
 ## Лицензия
 
-MIT
+Код MCP сервера — MIT.
+
+Сервер использует Gramps Web API (AGPL v3.0).
