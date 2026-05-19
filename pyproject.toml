@@ -1,0 +1,17 @@
+[project]
+name = "gramps-mcp"
+version = "0.1.0"
+description = "MCP server for Gramps Web API — manage family tree data via Claude"
+requires-python = ">=3.11"
+dependencies = [
+    "mcp[cli]>=1.6.0",
+    "httpx>=0.28.0",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+]
+
+[project.scripts]
+gramps-mcp = "gramps_mcp.server:main"
+
+[tool.uv]
+requires = ["uv>=0.4.0"]
