@@ -241,3 +241,160 @@ def register_analysis_tools(mcp: FastMCP) -> None:
 
         else:
             return f"Error: Orphan detection for '{entity_type}' is not supported. Use 'people', 'citations', or 'events'."
+
+    @mcp.tool()
+    async def get_living_status(
+        handle: str,
+        ctx: Context | None = None,
+    ) -> str:
+        """Estimate whether a person is alive based on their birth/death dates.
+
+        Returns a boolean flag and the logic used for the estimate.
+
+        Args:
+            handle: Person's handle
+        """
+        client = ctx.request_context.lifespan_context["client"]
+        result = await client.get_living_status(handle)
+        if isinstance(result, str):
+            return result
+        # Also get estimated dates
+        dates = await client.get_living_dates(handle)
+        if not isinstance(dates, str):
+            result["estimated_dates"] = dates
+        return json.dumps(result, indent=2, ensure_ascii=False)
+
+    @mcp.tool()
+    async def get_event_span(
+        handle1: str,
+        handle2: str,
+        as_age: bool = True,
+        precision: int = 3,
+        ctx: Context | None = None,
+    ) -> str:
+        """Calculate the time span between two events.
+
+        Useful for calculating age at death, marriage age, etc.
+
+        Args:
+            handle1: Handle of the first event (e.g. birth event)
+            handle2: Handle of the second event (e.g. death event)
+            as_age: If True, returns result as age (e.g. '67 years, 3 months')
+            precision: Date precision: 1=year only, 2=month, 3=day
+        """
+        client = ctx.request_context.lifespan_context["client"]
+        result = await client.get_event_span(handle1, handle2, as_age=as_age, precision=precision)
+        if isinstance(result, str):
+            return result
+        return json.dumps(result, indent=2, ensure_ascii=False)
+
+    @mcp.tool()
+    async def get_facts(
+        person_handle: str | None = None,
+        living_only: bool | None = None,
+        ctx: Context | None = None,
+    ) -> str:
+        """Get genealogical statistics/facts from the database.
+
+        Can be filtered to a specific person (e.g. number of descendants)
+        or to living people only.
+
+        Args:
+            person_handle: Optional person handle to filter by
+            living_only: If True, only include living people
+        """
+        client = ctx.request_context.lifespan_context["client"]
+        result = await client.get_facts(person_handle=person_handle, living=living_only)
+        if isinstance(result, str):
+            return result
+        return json.dumps(result, indent=2, ensure_ascii=False)
+
+    @mcp.tool()
+    async def get_family_timeline(
+        handle: str,
+        ctx: Context | None = None,
+    ) -> str:
+        """Get a chronological timeline of events for a family.
+
+        Includes events for both parents, children, and family-level events.
+
+        Args:
+            handle: Family's handle
+        """
+        client = ctx.request_context.lifespan_context["client"]
+        result = await client.get_family_timeline(handle)
+        if isinstance(result, str):
+            return result
+        return json.dumps(result, indent=2, ensure_ascii=False)
+
+    @mcp.tool()
+    async def get_dna_matches(
+        handle: str,
+        ctx: Context | None = None,
+    ) -> str:
+        """Get DNA match data for a person (if DNA data is linked).
+
+        Args:
+            handle: Person's handle
+        """
+        client = ctx.request_context.lifespan_context["client"]
+        result = await client.get_dna_matches(handle)
+        if isinstance(result, str):
+            return result
+        return json.dumps(result, indent=2, ensure_ascii=False)
+
+    @mcp.tool()
+    async def batch_create_entities(
+        objects: list[dict],
+        ctx: Context | None = None,
+    ) -> str:
+        """Create multiple objects in a single transaction.
+
+        Each object dict must include a '_class' field (e.g. 'Person', 'Event').
+        More efficient than calling individual create tools for bulk imports.
+
+        Args:
+            objects: List of object dicts, each with '_class' and other fields
+        """
+        client = ctx.request_context.lifespan_context["client"]
+        result = await client.batch_create(objects)
+        if isinstance(result, str):
+            return result
+        return json.dumps(result, indent=2, ensure_ascii=False)
+
+    @mcp.tool()
+    async def search_reindex(
+        full: bool = False,
+        semantic: bool = False,
+        ctx: Context | None = None,
+    ) -> str:
+        """Trigger a search index rebuild in Gramps Web.
+
+        Use after importing or batch-creating many records to ensure search
+        results are up to date.
+
+        Args:
+            full: If True, do a full reindex (not incremental)
+            semantic: If True, also rebuild semantic/vector index
+        """
+        client = ctx.request_context.lifespan_context["client"]
+        result = await client.search_reindex(full=full, semantic=semantic)
+        if isinstance(result, str):
+            return result
+        return json.dumps(result, indent=2, ensure_ascii=False)
+
+    @mcp.tool()
+    async def get_task_status(
+        task_id: str,
+        ctx: Context | None = None,
+    ) -> str:
+        """Check the status of a background task (export, import, report generation, etc.).
+
+        Args:
+            task_id: Task ID returned by an async operation
+        """
+        client = ctx.request_context.lifespan_context["client"]
+        result = await client.get_task_status(task_id)
+        if isinstance(result, str):
+            return result
+        return json.dumps(result, indent=2, ensure_ascii=False)

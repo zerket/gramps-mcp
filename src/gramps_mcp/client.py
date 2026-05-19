@@ -297,6 +297,62 @@ class GrampsWebAPIClient:
     async def get_person_timeline(self, handle: str) -> dict | list | str:
         return await self._request("GET", f"/api/people/{handle}/timeline/")
 
+    # ── Family Timeline ──────────────────────────────────────────────
+
+    async def get_family_timeline(self, handle: str) -> dict | list | str:
+        return await self._request("GET", f"/api/families/{handle}/timeline/")
+
+    # ── Living Status ────────────────────────────────────────────────
+
+    async def get_living_status(self, handle: str) -> dict | str:
+        return await self._request("GET", f"/api/living/{handle}/")
+
+    async def get_living_dates(self, handle: str) -> dict | str:
+        return await self._request("GET", f"/api/living/{handle}/dates/")
+
+    # ── Event Span ───────────────────────────────────────────────────
+
+    async def get_event_span(
+        self, handle1: str, handle2: str, as_age: bool = True, precision: int = 3
+    ) -> dict | str:
+        params = {"as_age": str(as_age).lower(), "precision": precision}
+        return await self._request("GET", f"/api/events/{handle1}/span/{handle2}/", params=params)
+
+    # ── Facts ────────────────────────────────────────────────────────
+
+    async def get_facts(
+        self,
+        person_handle: str | None = None,
+        living: bool | None = None,
+    ) -> dict | list | str:
+        params: dict = {}
+        if person_handle:
+            params["person"] = person_handle
+        if living is not None:
+            params["living"] = str(living).lower()
+        return await self._request("GET", "/api/facts/", params=params)
+
+    # ── DNA ──────────────────────────────────────────────────────────
+
+    async def get_dna_matches(self, handle: str) -> dict | list | str:
+        return await self._request("GET", f"/api/people/{handle}/dna/matches/")
+
+    # ── Batch Create ─────────────────────────────────────────────────
+
+    async def batch_create(self, objects: list[dict]) -> dict | list | str:
+        return await self._request("POST", "/api/objects/", json=objects)
+
+    # ── Search Reindex ───────────────────────────────────────────────
+
+    async def search_reindex(self, full: bool = False, semantic: bool = False) -> dict | str:
+        params = {"full": str(full).lower(), "semantic": str(semantic).lower()}
+        return await self._request("POST", "/api/search/index/", params=params)
+
+    # ── Tasks ────────────────────────────────────────────────────────
+
+    async def get_task_status(self, task_id: str) -> dict | str:
+        return await self._request("GET", f"/api/tasks/{task_id}/")
+
     # ── Person Detail (enriched) ─────────────────────────────────────
 
     async def get_person_detail_enriched(self, handle: str) -> dict | str:
